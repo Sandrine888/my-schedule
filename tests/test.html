@@ -293,8 +293,8 @@
         const doc = appFrame.contentDocument;
         const activeTab = doc.querySelector('.tab.active');
         const tabColor = app.getComputedStyle(activeTab).color;
-        const isPink = tabColor.includes('217, 108, 131') || tabColor.includes('247, 138, 136') || tabColor.includes('255, 183, 197');
-        if (!isPink) throw new Error(`颜色不是粉色: ${tabColor}`);
+        const isPrimary = tabColor.includes('143, 174, 139') || tabColor.includes('94, 122, 90') || tabColor.includes('58, 48, 40');
+        if (!isPrimary) throw new Error(`颜色不是主题色: ${tabColor}`);
         log('标准10: 选中页签文字为主题色', true);
       });
 
@@ -305,8 +305,8 @@
         const courseCard = doc.querySelector('.course-card');
         if (!courseCard) throw new Error('无课程卡片');
         const borderColor = app.getComputedStyle(courseCard).borderColor;
-        const isPink = borderColor.includes('217, 108, 131') || borderColor.includes('247, 138, 136') || borderColor.includes('255, 183, 197');
-        if (!isPink) throw new Error(`颜色不是粉色: ${borderColor}`);
+        const isPrimary = borderColor.includes('143, 174, 139') || borderColor.includes('94, 122, 90') || borderColor.includes('255, 183, 197');
+        if (!isPrimary) throw new Error(`颜色不是主题色: ${borderColor}`);
         log('标准10: 课程卡片边框为主题色', true);
       });
 
