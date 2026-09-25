@@ -90,6 +90,47 @@ ul { margin: 0; padding: 0; list-style: none; }
 .view { display: none; }
 .view.active { display: block; }
 
+/* 首页水墨背景 */
+#view-home {
+  position: relative;
+  min-height: 60vh;
+}
+#view-home::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../images/ink-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+#view-home > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 水墨笔触装饰 */
+.ink-stroke {
+  position: relative;
+}
+.ink-stroke::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ink) 0%, transparent 100%);
+  opacity: 0.3;
+  border-radius: 2px;
+}
+
 .page-head {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
@@ -106,8 +147,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 .sec-title::before {
   content: '';
-  display: inline-block; width: 16px; height: 1px;
-  background: var(--primary);
+  display: inline-block; width: 24px; height: 2px;
+  background: linear-gradient(90deg, var(--primary) 0%, transparent 100%);
+  border-radius: 1px;
 }
 
 /* ===== 通用组件 ===== */
@@ -176,6 +218,22 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: var(--card); border: 1px solid var(--line);
   border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow);
+  position: relative;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--primary) 20%, 
+    var(--primary-deep) 50%, 
+    var(--primary) 80%, 
+    transparent 100%);
+  opacity: 0.4;
 }
 .tl-item {
   display: flex; gap: 14px; padding: 14px 18px;
@@ -229,6 +287,17 @@ ul { margin: 0; padding: 0; list-style: none; }
   border-left: 3px solid var(--primary);
   border-radius: var(--radius); padding: 7px 9px; overflow: hidden; min-height: 0;
   transition: opacity 200ms var(--ease);
+  position: relative;
+}
+.course-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(circle at top right, var(--primary) 0%, transparent 70%);
+  opacity: 0.15;
 }
 .course-card:hover { opacity: 0.85; }
 .c-name { font-weight: 600; font-size: 13px; line-height: 1.4; color: var(--ink); letter-spacing: 0.3px; }

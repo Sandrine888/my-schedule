@@ -136,7 +136,7 @@ function renderHome() {
   $('#view-home').innerHTML = `
     <div class="page-head">
       <div>
-        <h2>${now.getMonth() + 1}月${now.getDate()}日 ${WEEK_CN[dow - 1]}</h2>
+        <h2 class="ink-stroke">${now.getMonth() + 1}月${now.getDate()}日 ${WEEK_CN[dow - 1]}</h2>
         <div class="sub">${escapeHtml(SEMESTER.name)}</div>
       </div>
       <span class="chip week">${week ? '第' + week + '周' : '非教学周'}</span>
