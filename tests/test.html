@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>测试套件 - 个人日程管理系统</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+    h1 { color: #1f2430; }
+    .test-section { margin: 20px 0; padding: 16px; border: 1px solid #e5e9f2; border-radius: 8px; }
+    .test-section h2 { margin: 0 0 12px; font-size: 16px; color: #5b6472; }
+    .test-result { padding: 8px 12px; margin: 6px 0; border-radius: 6px; font-size: 14px; }
+    .pass { background: #dcfce7; color: #16a34a; }
+    .fail { background: #fee2e2; color: #dc2626; }
+    .summary { font-size: 18px; font-weight: 700; padding: 16px; border-radius: 8px; margin: 20px 0; }
+    .summary.all-pass { background: #dcfce7; color: #16a34a; }
+    .summary.has-fail { background: #fee2e2; color: #dc2626; }
+    iframe { width: 100%; height: 600px; border: 1px solid #e5e9f2; border-radius: 8px; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>个人日程管理系统 - 自动化测试套件</h1>
+  <div id="results"></div>
+  <div id="summary"></div>
+  <iframe id="app-frame" src="../index.html"></iframe>
+
+  <script>
+    let hasRun = false;
+    const results = [];
+    const resultsDiv = document.getElementById('results');
+    const summaryDiv = document.getElementById('summary');
+    const appFrame = document.getElementById('app-frame');
+
+    function log(testName, passed, details = '') {
+      results.push({ testName, passed, details });
+      const div = document.createElement('div');
+      div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+      div.textContent = `${passed ? '✓' : '✗'} ${testName}${details ? ': ' + details : ''}`;
+      resultsDiv.appendChild(div);
+    }
+
+    function safeTest(testName, fn) {
+      try {
+        fn();
+      } catch (e) {
+        log(testName, false, `异常: ${e.message}`);
+      }
+    }
+
+    function addSection(title) {
+      const section = document.createElement('div');
+      section.className = 'test-section';
+      section.innerHTML = `<h2>${title}</h2>`;
+      resultsDiv.appendChild(section);
+    }
+
+    async function runTests() {
+      if (hasRun) return;
+      hasRun = true;
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      addSection('单元测试：核心函数');
+
+      safeTest('weekOf: 2026-09-07 = 第1周', () => {
+        const app = appFrame.contentWindow;
+        if (app.weekOf(app.parseDate('2026-09-07')) !== 1) throw new Error('期望1');
+        log('weekOf: 2026-09-07 = 第1周', true);
+      });
+
+      safeTest('weekOf: 2026-09-25 = 第3周', () => {
+        const app = appFrame.contentWindow;
+        if (app.weekOf(app.parseDate('2026-09-25')) !== 3) throw new Error('期望3');
+        log('weekOf: 2026-09-25 = 第3周', true);
+      });
+
+      safeTest('weekOf: 2026-10-01 = 第4周', () => {
+        const app = appFrame.contentWindow;
+        if (app.weekOf(app.parseDate('2026-10-01')) !== 4) throw new Error('期望4');
+        log('weekOf: 2026-10-01 = 第4周', true);
+      });
+
+      safeTest('dowOf: 2026-09-25 = 周五', () => {
+        const app = appFrame.contentWindow;
+        if (app.dowOf(app.parseDate('2026-09-25')) !== 5) throw new Error('期望5');
+        log('dowOf: 2026-09-25 = 周五', true);
+      });
+
+      safeTest('holidayOf: 2026-09-25 = 中秋节', () => {
+        const app = appFrame.contentWindow;
+        if (app.holidayOf('2026-09-25') !== '中秋节') throw new Error('期望中秋节');
+        log('holidayOf: 2026-09-25 = 中秋节', true);
+      });
+
+      safeTest('coursesOn(3,5): 第3周周五有2门课', () => {
+        const app = appFrame.contentWindow;
+        const courses = app.coursesOn(3, 5);
+        if (courses.length !== 2) throw new Error(`期望2,实际${courses.length}`);
+        log('coursesOn(3,5): 第3周周五有2门课', true);
+      });
+
+      addSection('验收标准测试（PRD 第9章）');
+
+      // 标准1
+      safeTest('标准1: 首页显示9月25日', () => {
+        const doc = appFrame.contentDocument;
+        const homeView = doc.querySelector('#view-home');
+        const dateHeader = homeView.querySelector('.page-head h2').textContent;
+        if (!dateHeader.includes('9月25日')) throw new Error('未包含9月25日');
+        log('标准1: 首页显示9月25日', true);
+      });
+
+      safeTest('标准1: 显示第3周', () => {
+        const doc = appFrame.contentDocument;
+        const homeView = doc.querySelector('#view-home');
+        const weekBadge = homeView.querySelector('.chip.week').textContent;
+        if (weekBadge !== '第3周') throw new Error(`期望第3周,实际${weekBadge}`);
+        log('标准1: 显示第3周', true);
+      });
+
+      safeTest('标准1: 存在橙色停课横幅', () => {
+        const doc = appFrame.contentDocument;
+        const homeView = doc.querySelector('#view-home');
+        const banner = homeView.querySelector('.banner.holiday');
+        if (!banner) throw new Error('无横幅');
+        if (!banner.textContent.includes('中秋节')) throw new Error('横幅不含中秋节');
+        log('标准1: 存在橙色停课横幅', true);
+      });
+
+      safeTest('标准1: 时间线无课程条目', () => {
+        const doc = appFrame.contentDocument;
+        const homeView = doc.querySelector('#view-home');
+        const timelineItems = homeView.querySelectorAll('.timeline .tl-item');
+        if (timelineItems.length !== 0) throw new Error(`期望0,实际${timelineItems.length}`);
+        log('标准1: 时间线无课程条目', true);
+      });
+
+      // 标准5
+      safeTest('标准5: 切换到课表', () => {
+        const app = appFrame.contentWindow;
+        app.switchTab('timetable');
+        log('标准5: 切换到课表', true);
+      });
+
+      safeTest('标准5: 课表默认第3周', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const weekLabel = ttView.querySelector('.week-label').textContent;
+        if (!weekLabel.includes('第3周')) throw new Error(`期望第3周,实际${weekLabel}`);
+        log('标准5: 课表默认第3周', true);
+      });
+
+      safeTest('标准5: 第3周周五有2张课程卡片', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const friCards = Array.from(courseCards).filter(c => c.style.gridColumn === '6');
+        if (friCards.length !== 2) throw new Error(`期望2,实际${friCards.length}`);
+        log('标准5: 第3周周五有2张课程卡片', true);
+      });
+
+      safeTest('标准5: 周五包含习思想', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const friCards = Array.from(courseCards).filter(c => c.style.gridColumn === '6');
+        const hasXi = friCards.some(c => c.querySelector('.c-name').textContent.includes('习近平'));
+        if (!hasXi) throw new Error('无习思想');
+        log('标准5: 周五包含习思想', true);
+      });
+
+      safeTest('标准5: 第3周周二包含大学计算机基础', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const tueCards = Array.from(courseCards).filter(c => c.style.gridColumn === '3');
+        const hasComputer = tueCards.some(c => c.querySelector('.c-name').textContent.includes('大学计算机基础'));
+        if (!hasComputer) throw new Error('无计算机基础');
+        log('标准5: 第3周周二包含大学计算机基础', true);
+      });
+
+      // 标准6
+      safeTest('标准6: 切换到第4周', () => {
+        const app = appFrame.contentWindow;
+        app.state.ttWeek = 4;
+        app.renderTimetable();
+        log('标准6: 切换到第4周', true);
+      });
+
+      safeTest('标准6: 第4周周五有1张课程卡片', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const friCards = Array.from(courseCards).filter(c => c.style.gridColumn === '6');
+        if (friCards.length !== 1) throw new Error(`期望1,实际${friCards.length}`);
+        log('标准6: 第4周周五有1张课程卡片', true);
+      });
+
+      safeTest('标准6: 第4周周三无心理健康', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const wedCards = Array.from(courseCards).filter(c => c.style.gridColumn === '4');
+        const hasMental = wedCards.some(c => c.querySelector('.c-name').textContent.includes('心理健康'));
+        if (hasMental) throw new Error('仍有心理健康');
+        log('标准6: 第4周周三无心理健康', true);
+      });
+
+      safeTest('标准6: 切换到第10周', () => {
+        const app = appFrame.contentWindow;
+        app.state.ttWeek = 10;
+        app.renderTimetable();
+        log('标准6: 切换到第10周', true);
+      });
+
+      safeTest('标准6: 第10周周一无法国歌剧史', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const monCards = Array.from(courseCards).filter(c => c.style.gridColumn === '2');
+        const hasOpera = monCards.some(c => c.querySelector('.c-name').textContent.includes('法国歌剧史'));
+        if (hasOpera) throw new Error('仍有法国歌剧史');
+        log('标准6: 第10周周一无法国歌剧史', true);
+      });
+
+      safeTest('标准6: 第10周周二无计算机基础', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const courseCards = ttView.querySelectorAll('.course-card');
+        const tueCards = Array.from(courseCards).filter(c => c.style.gridColumn === '3');
+        const hasComputer = tueCards.some(c => c.querySelector('.c-name').textContent.includes('大学计算机基础'));
+        if (hasComputer) throw new Error('仍有计算机基础');
+        log('标准6: 第10周周二无计算机基础', true);
+      });
+
+      // 标准8
+      safeTest('标准8: 切换到第3周并检查网格', () => {
+        const app = appFrame.contentWindow;
+        app.state.ttWeek = 3;
+        app.renderTimetable();
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const grid = ttView.querySelector('.tt-grid');
+        if (!grid) throw new Error('无网格');
+        log('标准8: 存在桌面网格', true);
+      });
+
+      safeTest('标准8: 网格有6列', () => {
+        const doc = appFrame.contentDocument;
+        const ttView = doc.querySelector('#view-timetable');
+        const grid = ttView.querySelector('.tt-grid');
+        // Check CSS rule
+        const sheets = doc.styleSheets;
+        let gridRule = null;
+        for (const sheet of sheets) {
+          try {
+            for (const rule of sheet.cssRules) {
+              if (rule.selectorText === '.tt-grid') {
+                gridRule = rule;
+                break;
+              }
+            }
+          } catch (e) {}
+        }
+        if (gridRule) {
+          const cols = gridRule.style.gridTemplateColumns;
+          // Parse: "56px repeat(5, 1fr)" means 1 + 5 = 6 columns
+          const hasRepeat = cols.match(/repeat\((\d+)/);
+          let colCount = 0;
+          if (hasRepeat) {
+            const repeatCount = parseInt(hasRepeat[1]);
+            const beforeRepeat = cols.split('repeat')[0].trim();
+            const beforeCount = beforeRepeat ? beforeRepeat.split(/\s+/).filter(s => s && !s.startsWith('repeat')).length : 0;
+            colCount = beforeCount + repeatCount;
+          } else {
+            colCount = cols.split(/\s+/).filter(s => s && !s.startsWith('repeat')).length;
+          }
+          if (colCount !== 6) throw new Error(`期望6列,实际${colCount} (CSS: ${cols})`);
+          log('标准8: 网格有6列', true);
+        } else {
+          throw new Error('未找到.tt-grid CSS规则');
+        }
+      });
+
+      // 标准10
+      safeTest('标准10: 切换到首页检查主题色', () => {
+        const app = appFrame.contentWindow;
+        app.switchTab('home');
+        log('标准10: 切换到首页', true);
+      });
+
+      safeTest('标准10: 选中页签文字为主题色', () => {
+        const app = appFrame.contentWindow;
+        const doc = appFrame.contentDocument;
+        const activeTab = doc.querySelector('.tab.active');
+        const tabColor = app.getComputedStyle(activeTab).color;
+        const isPink = tabColor.includes('247') || tabColor.includes('rgb(247, 138, 136)');
+        if (!isPink) throw new Error(`颜色不是粉色: ${tabColor}`);
+        log('标准10: 选中页签文字为主题色', true);
+      });
+
+      safeTest('标准10: 课程卡片左边框为主题色', () => {
+        const app = appFrame.contentWindow;
+        app.switchTab('timetable');
+        const doc = appFrame.contentDocument;
+        const courseCard = doc.querySelector('.course-card');
+        if (!courseCard) throw new Error('无课程卡片');
+        const borderLeft = app.getComputedStyle(courseCard).borderLeftColor;
+        const isPink = borderLeft.includes('247') || borderLeft.includes('rgb(247, 138, 136)');
+        if (!isPink) throw new Error(`颜色不是粉色: ${borderLeft}`);
+        log('标准10: 课程卡片左边框为主题色', true);
+      });
+
+      // 标准11：清空数据后重进
+      safeTest('标准11: 清空localStorage并重载', () => {
+        const app = appFrame.contentWindow;
+        app.localStorage.clear();
+        app.location.reload();
+        log('标准11: 清空localStorage并重载', true);
+      });
+
+      // 等待重载完成
+      await new Promise(resolve => {
+        const handler = () => {
+          appFrame.removeEventListener('load', handler);
+          setTimeout(resolve, 1000);
+        };
+        appFrame.addEventListener('load', handler);
+      });
+
+      safeTest('标准11: 日程为空态文案', () => {
+        const app = appFrame.contentWindow;
+        const doc = appFrame.contentDocument;
+        app.switchTab('todos');
+        const todosView = doc.querySelector('#view-todos');
+        const emptyMsg = todosView.querySelector('.empty');
+        if (!emptyMsg) throw new Error('无空态');
+        if (!emptyMsg.textContent.includes('还没有日程')) throw new Error('空态文案不正确');
+        log('标准11: 日程为空态文案', true);
+      });
+
+      safeTest('标准11: 课表仍有课程', () => {
+        const app = appFrame.contentWindow;
+        const doc = appFrame.contentDocument;
+        app.switchTab('timetable');
+        const reloadedCourses = doc.querySelectorAll('.course-card');
+        if (reloadedCourses.length === 0) throw new Error('课表无课程');
+        log('标准11: 课表仍有课程', true);
+      });
+
+      // 汇总
+      const passed = results.filter(r => r.passed).length;
+      const total = results.length;
+      summaryDiv.className = `summary ${passed === total ? 'all-pass' : 'has-fail'}`;
+      summaryDiv.textContent = `测试完成：${passed}/${total} 通过${passed < total ? ` (${total - passed} 失败)` : ''}`;
+    }
+
+    appFrame.addEventListener('load', () => {
+      setTimeout(runTests, 500);
+    });
+  </script>
+</body>
+</html>
