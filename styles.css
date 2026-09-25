@@ -104,13 +104,14 @@ ul { margin: 0; padding: 0; list-style: none; }
   bottom: 0;
   background-image: url('../images/ink-bg.jpg');
   background-size: cover;
-  background-position: center 30%;
+  background-position: center 60%;
   background-repeat: no-repeat;
   opacity: 0.15;
   pointer-events: none;
   z-index: 0;
-  -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
-  mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%);
+  mask-image: radial-gradient(ellipse at center, black 50%, transparent 85%);
+  filter: blur(0.5px);
 }
 #view-home > * {
   position: relative;
