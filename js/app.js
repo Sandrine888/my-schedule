@@ -133,6 +133,10 @@ function renderHome() {
   const empty = !timed.length && !untimed.length
     ? '<div class="empty">今天没有课程和日程安排。</div>' : '';
 
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  const poemIdx = (dayOfYear * 7 + 13) % POEMS.length;
+  const poemHtml = `<div class="daily-poem"><span class="poem-mark">诗</span>${escapeHtml(POEMS[poemIdx])}</div>`;
+
   $('#view-home').innerHTML = `
     <div class="page-head">
       <div>
@@ -150,6 +154,7 @@ function renderHome() {
     <h3 class="sec-title">今日时间线</h3>
     ${timed.length ? `<ul class="timeline">${timed.map(itemHtml).join('')}</ul>` : ''}
     ${empty}
+    ${poemHtml}
   `;
 }
 
