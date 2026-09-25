@@ -293,21 +293,21 @@
         const doc = appFrame.contentDocument;
         const activeTab = doc.querySelector('.tab.active');
         const tabColor = app.getComputedStyle(activeTab).color;
-        const isPink = tabColor.includes('247') || tabColor.includes('rgb(247, 138, 136)');
+        const isPink = tabColor.includes('217, 108, 131') || tabColor.includes('247, 138, 136') || tabColor.includes('255, 183, 197');
         if (!isPink) throw new Error(`颜色不是粉色: ${tabColor}`);
         log('标准10: 选中页签文字为主题色', true);
       });
 
-      safeTest('标准10: 课程卡片左边框为主题色', () => {
+      safeTest('标准10: 课程卡片边框为主题色', () => {
         const app = appFrame.contentWindow;
         app.switchTab('timetable');
         const doc = appFrame.contentDocument;
         const courseCard = doc.querySelector('.course-card');
         if (!courseCard) throw new Error('无课程卡片');
-        const borderLeft = app.getComputedStyle(courseCard).borderLeftColor;
-        const isPink = borderLeft.includes('247') || borderLeft.includes('rgb(247, 138, 136)');
-        if (!isPink) throw new Error(`颜色不是粉色: ${borderLeft}`);
-        log('标准10: 课程卡片左边框为主题色', true);
+        const borderColor = app.getComputedStyle(courseCard).borderColor;
+        const isPink = borderColor.includes('217, 108, 131') || borderColor.includes('247, 138, 136') || borderColor.includes('255, 183, 197');
+        if (!isPink) throw new Error(`颜色不是粉色: ${borderColor}`);
+        log('标准10: 课程卡片边框为主题色', true);
       });
 
       // 标准11：清空数据后重进
