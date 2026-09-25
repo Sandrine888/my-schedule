@@ -35,7 +35,17 @@ body {
       transparent 39px,
       rgba(58,48,40,0.018) 39px,
       rgba(58,48,40,0.018) 40px
-    );
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 39px,
+      rgba(58,48,40,0.012) 39px,
+      rgba(58,48,40,0.012) 40px
+    ),
+    radial-gradient(ellipse at 20% 50%, rgba(139,119,90,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139,119,90,0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(139,119,90,0.025) 0%, transparent 50%);
   color: var(--text);
   font-family: 'Noto Serif SC', 'ZCOOL XiaoWei', 'PingFang SC', 'Microsoft YaHei', serif;
   font-size: 15px;
@@ -196,7 +206,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 .chip.overdue { background: var(--vermillion-soft); color: var(--vermillion); }
 
 .banner {
-  background: var(--card); border: 1px solid var(--line);
+  background: var(--card);
+  background-image: radial-gradient(ellipse at 50% 50%, rgba(139,119,90,0.015) 0%, transparent 70%);
+  border: 1px solid var(--line);
   border-radius: var(--radius); padding: 12px 18px;
   color: var(--dim); margin-bottom: 8px;
   box-shadow: var(--shadow-sm);
@@ -205,7 +217,9 @@ ul { margin: 0; padding: 0; list-style: none; }
   background: var(--vermillion-soft); border-color: #D4A8A0; color: var(--vermillion);
 }
 .empty {
-  background: var(--card); border: 1px dashed var(--line);
+  background: var(--card);
+  background-image: radial-gradient(ellipse at 50% 50%, rgba(139,119,90,0.02) 0%, transparent 70%);
+  border: 1px dashed var(--line);
   border-radius: var(--radius); padding: 40px 16px;
   text-align: center; color: var(--dim);
   font-size: 14px; letter-spacing: 0.5px;
@@ -218,7 +232,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* ===== 首页时间线 ===== */
 .timeline {
-  background: var(--card); border: 1px solid var(--line);
+  background: var(--card);
+  background-image: radial-gradient(ellipse at 30% 50%, rgba(139,119,90,0.02) 0%, transparent 70%);
+  border: 1px solid var(--line);
   border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow);
   position: relative;
@@ -336,7 +352,9 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 /* ===== 日程 / 待办 ===== */
 .todo-list {
-  background: var(--card); border: 1px solid var(--line);
+  background: var(--card);
+  background-image: radial-gradient(ellipse at 70% 30%, rgba(139,119,90,0.02) 0%, transparent 70%);
+  border: 1px solid var(--line);
   border-radius: var(--radius); overflow: hidden;
   box-shadow: var(--shadow);
 }
