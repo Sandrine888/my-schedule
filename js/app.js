@@ -47,12 +47,15 @@ function coursesOn(week, dow) {
 
 /* ---------- 状态与持久化 ---------- */
 const LS_KEY = 'my-schedule.todos.v1';
+const LS_CHECKLIST_KEY = 'my-schedule.checklist.v1';
 const state = {
   tab: 'home',
   ttWeek: weekOf(new Date()) || 1,
   ttDay: dowOf(new Date()) <= 5 ? dowOf(new Date()) : 0,
   todos: loadTodos(),
-  editingId: null
+  checklist: loadChecklist(),
+  editingId: null,
+  editingChecklistId: null
 };
 window.state = state;
 function loadTodos() {
@@ -62,6 +65,13 @@ function loadTodos() {
   } catch { return []; }
 }
 function saveTodos() { localStorage.setItem(LS_KEY, JSON.stringify(state.todos)); }
+function loadChecklist() {
+  try {
+    const raw = localStorage.getItem(LS_CHECKLIST_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+function saveChecklist() { localStorage.setItem(LS_CHECKLIST_KEY, JSON.stringify(state.checklist)); }
 
 /* ---------- 首页 ---------- */
 function renderHome() {
@@ -308,6 +318,62 @@ $('#todo-form').addEventListener('submit', (e) => {
   if (state.tab === 'home') renderHome();
 });
 
+/* ---------- 待办打勾 ---------- */
+function renderChecklist() {
+  const items = [...state.checklist].sort((a, b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.title > b.title ? 1 : -1);
+  });
+
+  const html = items.map((t) => `
+    <li class="todo-item ${t.done ? 'done' : ''}">
+      <input type="checkbox" data-action="toggle-checklist" data-id="${t.id}" ${t.done ? 'checked' : ''} aria-label="完成">
+      <div class="todo-body">
+        <div class="todo-title">${escapeHtml(t.title)}</div>
+      </div>
+      <div class="todo-actions">
+        <button class="btn icon" data-action="edit-checklist" data-id="${t.id}" aria-label="编辑">✎</button>
+        <button class="btn icon danger" data-action="del-checklist" data-id="${t.id}" aria-label="删除">✕</button>
+      </div>
+    </li>`).join('');
+
+  $('#view-checklist').innerHTML = `
+    <div class="page-head">
+      <h2>待办事项</h2>
+      <button class="btn primary" data-action="add-checklist">＋ 添加待办</button>
+    </div>
+    ${items.length ? `<ul class="todo-list">${html}</ul>` : '<div class="empty">还没有待办，点右上角「添加待办」开始。</div>'}
+  `;
+}
+
+function openChecklistModal(item) {
+  state.editingChecklistId = item ? item.id : null;
+  $('#checklist-modal-title').textContent = item ? '编辑待办' : '添加待办';
+  const f = $('#checklist-form');
+  f.reset();
+  if (item) f.title.value = item.title;
+  $('#checklist-form-error').classList.add('hidden');
+  $('#checklist-modal').classList.remove('hidden');
+  f.title.focus();
+}
+function closeChecklistModal() { $('#checklist-modal').classList.add('hidden'); state.editingChecklistId = null; }
+
+$('#checklist-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const f = e.target;
+  const title = f.title.value.trim();
+  if (!title) return;
+  if (state.editingChecklistId) {
+    const t = state.checklist.find((x) => x.id === state.editingChecklistId);
+    t.title = title;
+  } else {
+    state.checklist.push({ id: uid(), done: false, title });
+  }
+  saveChecklist();
+  closeChecklistModal();
+  renderChecklist();
+});
+
 /* ---------- 事件与路由 ---------- */
 document.addEventListener('click', (e) => {
   const tabBtn = e.target.closest('.tab');
@@ -319,8 +385,11 @@ document.addEventListener('click', (e) => {
   const id = el.dataset.id;
 
   if (action === 'close-modal') closeModal();
+  else if (action === 'close-checklist-modal') closeChecklistModal();
   else if (action === 'add') openModal(null);
+  else if (action === 'add-checklist') openChecklistModal(null);
   else if (action === 'edit') openModal(state.todos.find((t) => t.id === id));
+  else if (action === 'edit-checklist') openChecklistModal(state.checklist.find((t) => t.id === id));
   else if (action === 'del') {
     const t = state.todos.find((x) => x.id === id);
     if (t && confirm(`删除日程「${t.title}」？`)) {
@@ -328,9 +397,20 @@ document.addEventListener('click', (e) => {
       saveTodos(); renderTodos(); renderHome();
     }
   }
+  else if (action === 'del-checklist') {
+    const t = state.checklist.find((x) => x.id === id);
+    if (t && confirm(`删除待办「${t.title}」？`)) {
+      state.checklist = state.checklist.filter((x) => x.id !== id);
+      saveChecklist(); renderChecklist();
+    }
+  }
   else if (action === 'toggle') {
     const t = state.todos.find((x) => x.id === id);
     t.done = el.checked; saveTodos(); renderTodos(); renderHome();
+  }
+  else if (action === 'toggle-checklist') {
+    const t = state.checklist.find((x) => x.id === id);
+    t.done = el.checked; saveChecklist(); renderChecklist();
   }
   else if (action === 'tt-week') {
     const w = state.ttWeek + Number(el.dataset.delta);
@@ -341,7 +421,7 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Escape') { closeModal(); closeChecklistModal(); }
 });
 
 function switchTab(tab) {
@@ -350,6 +430,7 @@ function switchTab(tab) {
   document.querySelectorAll('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-' + tab));
   if (tab === 'home') renderHome();
   else if (tab === 'timetable') renderTimetable();
+  else if (tab === 'checklist') renderChecklist();
   else renderTodos();
 }
 

@@ -347,6 +347,91 @@
         log('标准11: 课表仍有课程', true);
       });
 
+      // 待办打勾模块测试
+      addSection('待办打勾模块测试');
+
+      safeTest('待办: 切换到待办页签', () => {
+        const app = appFrame.contentWindow;
+        app.switchTab('checklist');
+        log('待办: 切换到待办页签', true);
+      });
+
+      safeTest('待办: 空态显示正确文案', () => {
+        const doc = appFrame.contentDocument;
+        const view = doc.querySelector('#view-checklist');
+        const emptyMsg = view.querySelector('.empty');
+        if (!emptyMsg) throw new Error('无空态');
+        if (!emptyMsg.textContent.includes('还没有待办')) throw new Error('空态文案不正确');
+        log('待办: 空态显示正确文案', true);
+      });
+
+      safeTest('待办: 存在添加按钮', () => {
+        const doc = appFrame.contentDocument;
+        const view = doc.querySelector('#view-checklist');
+        const addBtn = view.querySelector('[data-action="add-checklist"]');
+        if (!addBtn) throw new Error('无添加按钮');
+        log('待办: 存在添加按钮', true);
+      });
+
+      safeTest('待办: 添加待办项', () => {
+        const app = appFrame.contentWindow;
+        app.state.checklist.push({ id: app.uid(), done: false, title: '测试待办' });
+        app.saveChecklist();
+        app.renderChecklist();
+        const doc = appFrame.contentDocument;
+        const items = doc.querySelectorAll('#view-checklist .todo-item');
+        if (items.length !== 1) throw new Error(`期望1,实际${items.length}`);
+        log('待办: 添加待办项', true);
+      });
+
+      safeTest('待办: 待办标题正确显示', () => {
+        const doc = appFrame.contentDocument;
+        const title = doc.querySelector('#view-checklist .todo-title');
+        if (!title || title.textContent !== '测试待办') throw new Error('标题不正确');
+        log('待办: 待办标题正确显示', true);
+      });
+
+      safeTest('待办: 勾选完成', () => {
+        const app = appFrame.contentWindow;
+        const item = app.state.checklist[0];
+        item.done = true;
+        app.saveChecklist();
+        app.renderChecklist();
+        const doc = appFrame.contentDocument;
+        const cb = doc.querySelector('#view-checklist input[type="checkbox"]');
+        if (!cb || !cb.checked) throw new Error('未勾选');
+        const listItem = doc.querySelector('#view-checklist .todo-item');
+        if (!listItem.classList.contains('done')) throw new Error('无done样式');
+        log('待办: 勾选完成', true);
+      });
+
+      safeTest('待办: 删除待办项', () => {
+        const app = appFrame.contentWindow;
+        app.state.checklist = [];
+        app.saveChecklist();
+        app.renderChecklist();
+        const doc = appFrame.contentDocument;
+        const items = doc.querySelectorAll('#view-checklist .todo-item');
+        if (items.length !== 0) throw new Error(`期望0,实际${items.length}`);
+        const emptyMsg = doc.querySelector('#view-checklist .empty');
+        if (!emptyMsg) throw new Error('删除后无空态');
+        log('待办: 删除待办项', true);
+      });
+
+      safeTest('待办: 待办项无时间/地点字段', () => {
+        const app = appFrame.contentWindow;
+        app.state.checklist.push({ id: app.uid(), done: false, title: '无时间待办' });
+        app.saveChecklist();
+        app.renderChecklist();
+        const doc = appFrame.contentDocument;
+        const meta = doc.querySelector('#view-checklist .todo-meta');
+        if (meta) throw new Error('不应有时间/地点字段');
+        app.state.checklist = [];
+        app.saveChecklist();
+        app.renderChecklist();
+        log('待办: 待办项无时间/地点字段', true);
+      });
+
       // 汇总
       const passed = results.filter(r => r.passed).length;
       const total = results.length;

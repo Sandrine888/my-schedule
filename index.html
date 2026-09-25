@@ -14,6 +14,7 @@
         <button class="tab active" data-tab="home">首页</button>
         <button class="tab" data-tab="timetable">课表</button>
         <button class="tab" data-tab="todos">日程</button>
+        <button class="tab" data-tab="checklist">待办</button>
       </nav>
     </div>
   </header>
@@ -22,6 +23,7 @@
     <section id="view-home" class="view active"></section>
     <section id="view-timetable" class="view"></section>
     <section id="view-todos" class="view"></section>
+    <section id="view-checklist" class="view"></section>
   </main>
 
   <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
@@ -52,6 +54,23 @@
         <p id="form-error" class="form-error hidden"></p>
         <div class="modal-actions">
           <button type="button" class="btn ghost" data-action="close-modal">取消</button>
+          <button type="submit" class="btn primary">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="checklist-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-mask" data-action="close-checklist-modal"></div>
+    <div class="modal-card">
+      <h2 id="checklist-modal-title">添加待办</h2>
+      <form id="checklist-form">
+        <label>标题 <span class="req">*</span>
+          <input name="title" maxlength="80" required placeholder="例如：买牛奶">
+        </label>
+        <p id="checklist-form-error" class="form-error hidden"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn ghost" data-action="close-checklist-modal">取消</button>
           <button type="submit" class="btn primary">保存</button>
         </div>
       </form>
